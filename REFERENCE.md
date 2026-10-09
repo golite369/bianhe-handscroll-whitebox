@@ -9,3 +9,5 @@ Previous independently implemented demo is recoverable from Git commit ade687498
 2026-10-09 visual cleanup requested by user: removed procedural street dog, handcart and its cargo baskets, foreground baskets, and carrier basket/pole overlays from scene.js. Former cart/carrier NPCs now use the existing normal walking renderer; other inhabitants, boats, boatmen, water and interactions remain unchanged. Loader cache versions updated. No replacement images generated.
 
 2026-10-09: removed the entry-screen X and GitHub navigation icons as requested. Source provenance and license files are retained here and in the runtime.
+
+2026-10-09: added an approved UI interaction slice: Wang Wu (王五), an existing fixed resident at x=584, speaks through a measured/paginated typewriter dialogue box. Added camera/input adapter without changing movement.js, inhabitants.js, population.js or street-life.js. Existing world animation continues during conversations. Evidence viewer displays only the sketch region of the user-approved UI board using CSS clipping; no new character or scene assets. This is the first interaction slice, not the complete 3–5 minute story.

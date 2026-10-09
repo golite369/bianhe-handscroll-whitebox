@@ -133,6 +133,38 @@ import {ThreeWaterRenderer} from './water-three.js?v=1.9-scissor';
   const sceneDescription = canvas.getAttribute('aria-label');
   const ink = '#555342';
   const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+  // Dialogue owns input and camera only; original gait/population rigs stay intact.
+  let dialogueView=null,dialogueReturn=null;
+  const dialogueNPC=population.residents.find(p=>p.x===584);
+  window.HandscrollDialogueScene={
+    get locked(){return !!dialogueView;},
+    read(){
+      const hit=inhabitants.hits.find(hit=>hit.p.id===dialogueNPC.id);
+      return {ready:state.loaded,inAtlas:document.body.classList.contains('in-atlas'),aboard:aboard(),
+        player:{x:player.x,y:player.pose?.y??streetY(player.x),h:69},
+        npc:{x:hit?.x??dialogueNPC.x,y:hit?.y??streetY(dialogueNPC.x),h:dialogueNPC.h},
+        camera:state.camera,viewY:state.viewY,scale:state.scale,width:state.width,height:state.height,time:state.time};
+    },
+    approach(){if(!dialogueView&&!aboard())travel(dialogueNPC.x-47);},
+    lock(closeup=true){
+      if(dialogueView||aboard()||!state.loaded)return false;
+      dialogueReturn={zoom:state.zoom,camera:state.camera,target:state.target,viewY:state.viewY,follow:player.follow};
+      walkInput.clear();release();state.auto=false;updatePlay();player.goal=null;player.pending=null;
+      player.velocity=0;player.moving=false;player.action=null;player.idleTime=0;
+      dialogueView={npcX:dialogueNPC.x,closeup};setFollow(false);
+      document.body.classList.add('dialogue-locked');return true;
+    },
+    unlock(){
+      if(!dialogueView)return;
+      dialogueView=null;walkInput.clear();player.goal=null;player.pending=null;player.velocity=0;player.moving=false;
+      state.zoom=dialogueReturn.zoom;state.scale=state.baseScale*state.zoom;
+      state.max=Math.max(MIN,MAX-state.width/state.scale);
+      state.camera=clamp(dialogueReturn.camera,MIN,state.max);state.target=clamp(dialogueReturn.target,MIN,state.max);
+      state.viewY=clamp(dialogueReturn.viewY,0,Math.max(0,H-state.height/state.scale));
+      setFollow(dialogueReturn.follow);dialogueReturn=null;document.body.classList.remove('dialogue-locked');
+      painting.focus({preventScroll:true});
+    }
+  };
   function resize() {
     const ratio = state.max>MIN ? (state.target-MIN)/(state.max-MIN) : .4;
     state.width = innerWidth; state.height = innerHeight;
@@ -927,7 +959,8 @@ import {ThreeWaterRenderer} from './water-three.js?v=1.9-scissor';
       nightLevel=nightfall.step(dt,reduced.matches);
       painting.dataset.night=nightLevel.toFixed(3);
       state.uiTime+=dt;if(state.running)state.time+=dt;
-      updatePlayer(dt,walkInput.direction);
+      if(dialogueView){if(state.running)world.stepFerry(ferry,dt);}
+      else updatePlayer(dt,walkInput.direction);
       crossing.step(state.running?dt:0,{arriving:player.pending==='tow'});
       weatherSample=rainEvent.step(state.running?dt:0);
       const weatherMessages={gather:'河面起风，云气渐低',shower:'疏雨落入画卷',downpour:'雨势渐盛',easing:'雨声渐歇，檐水仍在滴落',afterglow:'云开雨过，湿地微光',complete:'雨过天青，街市如常'};
@@ -942,6 +975,15 @@ import {ThreeWaterRenderer} from './water-three.js?v=1.9-scissor';
       life.advance(state.running?dt:0,state.time,{player,ferry,roadblock:crossing.busy?[1300,1735]:null});
       Object.assign(life.frame.actors,crossing.residents(world));
       if(state.running&&life.shouldCallFerry(state.time,ferry,player))world.summonFerry(ferry,'east');
+      if(dialogueView?.closeup){
+        const zoom=Math.min(4.8,Math.max(dialogueReturn.zoom*1.5,state.height/(69*2.9*state.baseScale)));
+        const easing=reduced.matches?1:1-Math.exp(-dt*7);
+        state.zoom+=(zoom-state.zoom)*easing;state.scale=state.baseScale*state.zoom;
+        state.max=Math.max(MIN,MAX-state.width/state.scale);
+        state.target=clamp((player.x+dialogueView.npcX)/2-state.width*.5/state.scale,MIN,state.max);
+        const viewY=clamp(streetY(player.x)-state.height*.76/state.scale,0,Math.max(0,H-state.height/state.scale));
+        state.viewY+=(viewY-state.viewY)*easing;
+      }
       state.target=clamp(state.target,MIN,state.max);
       state.camera+=(state.target-state.camera)*(reduced.matches?1:1-Math.exp(-dt*10));
       // End easing below a small fraction of a physical pixel, so an idle
