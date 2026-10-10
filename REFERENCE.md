@@ -1,6 +1,6 @@
 # 汴河寻踪 · 来源与修改记录
 
-Runtime copied from https://github.com/xianxie6/qingming-riverside at commit 40c8d63adaf3254776f31250b719d3e8a4674c59, as explicitly requested for this user's experiment. Original author links, project license, and third-party license files are retained. This record does not grant reuse rights.
+基础场景与交互版本：https://github.com/xianxie6/qingming-riverside ，提交 40c8d63adaf3254776f31250b719d3e8a4674c59。相关许可文件与第三方署名随运行素材保留。本文记录版本演进，项目介绍与玩法见 README 和 docs。
 
 User-requested difference: removed the visit-counter UI and its network script. Scene, people masks, movement rigs, resident definitions, boat crews, interactive ferry, bridge crossing, Three.js water, controls and existing artwork are otherwise retained from that commit. No generated replacement images were added.
 
