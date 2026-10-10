@@ -44,6 +44,7 @@
               const data=c.getImageData(0,0,w,h).data;let l=w,r=0,t=h,b=0;
               for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(data[(y*w+x)*4+3]>96){l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);b=Math.max(b,y);}
               const frame=document.createElement('canvas');frame.width=r-l+1;frame.height=b-t+1;frame.getContext('2d').drawImage(tmp,l,t,frame.width,frame.height,0,0,frame.width,frame.height);person.frames.push(frame);
+              person.rigs??=[];person.rigs.push(RoomMotion.frame(frame,cell===0));
             }resolve(true);
           };image.onerror=()=>resolve(false);image.src=`assets/guest-${name}-v2.webp`;
         });return person;
@@ -59,12 +60,12 @@
       const c=p.canvas.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,p.canvas.width,p.canvas.height);
       c.setTransform(ratio,0,0,ratio,0,0);c.imageSmoothingQuality='high';
       c.translate(height/2,height+10);
-      const bob=p.seated?Math.sin(p.phase)*.65:Math.abs(Math.sin(p.phase))*1.8;
-      c.rotate(Math.sin(p.phase)*(p.seated?.002:.009));
       for(let i=0;i<2;i++){
         const alpha=i?p.blend:1-p.blend;if(alpha<=0)continue;
         const frame=p.frames[i],fh=i?height*.74:height,fw=fh*frame.width/frame.height;
-        c.save();c.globalAlpha=alpha;if(i&&p.i===1)c.scale(-1,1);c.drawImage(frame,-fw/2,-fh-bob,fw,fh);c.restore();
+        c.save();c.globalAlpha=alpha;if(i&&p.i===1)c.scale(-1,1);
+        RoomMotion.draw(c,p.rigs[i],{height:fh,distance:(p.distance||0)*height/.265/1024,weight:i||p.seated?0:p.weight,activity:i?'eat':null,time:p.phase,hand:p.i?[.72,.30]:[.52,.34]});
+        c.restore();
       }
     }
     showQueue(){this.queue.hidden=false;this.queueTicket.hidden=false;this.queueNumbers.forEach(b=>b.hidden=false);}
@@ -115,7 +116,7 @@
           const elapsed=now-start-i*850;if(elapsed<0&&!reduced)return;
           p.canvas.hidden=false;const target=destinations[i],duration=table==='window'?3800+i*900:6500+i*900;
           const t=reduced?1:Math.min(1,Math.max(0,elapsed/duration));
-          const ease=t*t*(3-2*t);p.x=.135+(target[0]-.135)*ease;p.y=.8+(target[1]-.8)*ease;
+          const ease=t*t*(3-2*t);p.x=.135+(target[0]-.135)*ease;p.y=.8+(target[1]-.8)*ease;p.distance=Math.hypot((target[0]-.135)*1536,(target[1]-.8)*1024)*ease;p.weight=Math.min(1,t*8,(1-t)*8);
           p.seated=t===1;p.blend=reduced?1:Math.min(1,Math.max(0,(elapsed-duration)/400));p.phase=elapsed/(p.seated?800:170);this.draw(p);
         });
         if(this.people.every(p=>p.blend===1)){this.meal.hidden=false;if(this.queueReady)this.showQueue();}

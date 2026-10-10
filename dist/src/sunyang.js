@@ -23,6 +23,7 @@
   );
   dishes.push({name:'东坡肉',path:['市集采买','切块焯水','慢火煨炖','收汁上桌'],note:'慢火煨出的酱香，配一味饼食正好。'});
   ['hubing','ruchuiyang','woju','zhiyu','baiqieji','sunroubao','guihuagao','xianguo','dongporou'].forEach((file,i)=>dishes[i].image=`assets/food/${file}-v1.webp`);
+  const prices=[12,38,8,24,22,16,10,9,36];
   const anchors={door:[.135,.65],window:[.29,.57],hall:[.55,.60],kitchen:[.85,.54]};
   const tablePoints={window:[.29,.588],hall:[.55,.607]};
   const labels=['入店','寻席落座','点食备餐','一席已成'];
@@ -186,8 +187,8 @@
     $('seatMark').hidden=!seat||served;$('tableMeal').hidden=!served;
     $('actions').hidden=phase<2;
     $('actions').innerHTML=phase===2?action('食单 →','menu')+action('换一席','reseat',false):
-      served?'':action('上菜','serve')+action('添菜','menu',false);
-    $('dishes').innerHTML=dishes.map((dish,i)=>`<label class="dish" style="--dish-i:${i}"><input type="checkbox" value="${i}" aria-label="${dish.name}" ${selected.has(i)?'checked':''}><span class="food-portrait"><img src="${dish.image}" alt="" width="1024" height="1024" draggable="false"><span class="food-selected" aria-hidden="true">✓</span></span><span class="dish-name">${dish.name}</span></label>`).join('');
+      served?action(document.body.dataset.mealPaid==='true'?'已结清 · 查看账单':'结账','checkout')+action('吃完离开','leave',false):action('上菜','serve')+action('添菜','menu',false);
+    $('dishes').innerHTML=dishes.map((dish,i)=>`<label class="dish" style="--dish-i:${i}"><input type="checkbox" value="${i}" aria-label="${dish.name}" ${selected.has(i)?'checked':''}><span class="food-portrait"><img src="${dish.image}" alt="" width="1024" height="1024" draggable="false"><span class="food-selected" aria-hidden="true">✓</span></span><span class="dish-name">${dish.name}<small class="dish-price">${prices[i]} 文</small></span></label>`).join('');
     if(served)$('tableMeal').innerHTML=[...selected].map(i=>`<img src="${dishes[i].image}" alt="${dishes[i].name}" width="48" height="40">`).join('');
     updateSelection();position();
     $('announcement').textContent=labels[phase];
@@ -214,12 +215,15 @@
     }
     else if(value==='menu'){hush();phase=2;served=false;render();menu(true);}
     else if(value==='prepare'||value==='kitchen'){if(!selected.size||!await finishOrdering())return;phase=3;render(true);guests.enter(seat);talk([['painter','伙计，\n照食单上吧！'],['staff','好嘞，\n这就来！']]);}
-    else if(value==='serve'){if(!selected.size||!seat)return;served=true;render(true);talk([['staff','酒食齐了，\n客官慢用！'],['painter','有劳，\n有劳！']]);}
+    else if(value==='serve'){if(!selected.size||!seat)return;served=true;render(true);window.dispatchEvent(new CustomEvent('sunyang-meal',{detail:{indices:[...selected]}}));talk([['staff','酒食齐了，\n客官慢用！'],['painter','有劳，\n有劳！']]);}
+    else if(value==='checkout'||value==='leave'){hush();window.dispatchEvent(new CustomEvent('sunyang-checkout',{detail:{leave:value==='leave'}}));}
     else if(value==='reseat'){hush();host.cancelWalk();menu(false);seat='';if(!await painter.move(.21,.80))return;phase=1;render(true);lookAt('window');}
-    else if(value==='restart'){hush();guests.reset();host.reset();painter.reset();menu(false);phase=0;seat='';served=false;selected.clear();render(true);lookAt('door');talk([['staff','客官，\n里面请！']]);}
+    else if(value==='restart'){hush();guests.reset();host.reset();painter.reset();menu(false);phase=0;seat='';served=false;selected.clear();window.dispatchEvent(new Event('sunyang-reset'));render(true);lookAt('door');talk([['staff','客官，\n里面请！']]);}
   }
   document.addEventListener('click',e=>{const el=e.target.closest('[data-action],[data-place]');if(el)act(el.dataset.action||(el.dataset.place==='door'?'enter':el.dataset.place));});
   $('restart').addEventListener('click',()=>act('restart'));
+  window.addEventListener('sunyang-paid',()=>render());
+  window.addEventListener('sunyang-leave',()=>{location.href='index.html#sunyang';});
   $('prepare').addEventListener('click',()=>act('prepare'));
   $('closeMenu').addEventListener('click',()=>menu(false));
   $('menuShade').addEventListener('click',()=>menu(false));

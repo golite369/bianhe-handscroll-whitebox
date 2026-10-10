@@ -1,0 +1,7 @@
+#mainQuestInspect[hidden]{display:none}
+#mainQuestInspect{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(38,30,19,.24)}
+.main-quest-sheet{width:min(430px,calc(100vw - 48px));max-height:80vh;overflow:auto;position:relative}
+.main-quest-copy{white-space:pre-line;line-height:1.9}
+.main-quest-options{display:flex;flex-direction:column;gap:9px}
+.main-quest-options button{display:block;box-sizing:border-box;width:100%;height:auto;min-height:42px;border-radius:2px;padding:10px 14px;border:1px solid #ad9e82;background:transparent;color:#574b36;font:16px/1.5 var(--dialogue-font);text-align:left;cursor:pointer}
+.main-quest-options button:hover,.main-quest-options button:focus-visible{background:#e6dac1;outline:1px solid #796b51}

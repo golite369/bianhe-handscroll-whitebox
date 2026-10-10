@@ -14,7 +14,7 @@
         for(let y=0;y<raw.height;y++)for(let x=0;x<raw.width;x++)if(data[(y*raw.width+x)*4+3]>96){l=Math.min(l,x);t=Math.min(t,y);r=Math.max(r,x);b=Math.max(b,y);}
         this.texture=document.createElement('canvas');this.texture.width=r-l+1;this.texture.height=b-t+1;
         this.texture.getContext('2d').drawImage(art,l,t,r-l+1,b-t+1,0,0,r-l+1,b-t+1);
-        this.ready=true;this.draw();
+        this.walkArt=RoomMotion.frame(this.texture,true);this.ready=true;this.draw();
       };
       art.src='assets/sunyang-host-v2.webp';
     }
@@ -34,9 +34,9 @@
         const tick=now=>{
           if(token!==this.walkTicket)return;if(start===null)start=now;
           const t=duration?Math.min(1,(now-start)/duration):1;
-          let distance=total*(t*t*(3-2*t));this.step=distance/42;
+          let distance=total*(t*t*(3-2*t));this.step=distance;
           for(let i=0;i<lengths.length;i++){
-            if(distance<=lengths[i]||i===lengths.length-1){const u=lengths[i]?Math.min(1,distance/lengths[i]):1;this.x=path[i][0]+(path[i+1][0]-path[i][0])*u;this.y=path[i][1]+(path[i+1][1]-path[i][1])*u;break;}distance-=lengths[i];
+            if(distance<=lengths[i]||i===lengths.length-1){const u=lengths[i]?Math.min(1,distance/lengths[i]):1;const dx=path[i+1][0]-path[i][0];if(Math.abs(dx)>1)this.facing=Math.sign(dx);this.x=path[i][0]+dx*u;this.y=path[i][1]+(path[i+1][1]-path[i][1])*u;break;}distance-=lengths[i];
           }
           if(t===1){this.walking=false;this.walkDone=null;this.draw();resolve(true);}else{this.draw();requestAnimationFrame(tick);}
         };requestAnimationFrame(tick);
@@ -47,6 +47,7 @@
       this.position();if(!this.ready)return;
       const c=this.ctx;c.setTransform(3,0,0,3,0,0);c.clearRect(0,0,this.w,this.h);c.imageSmoothingQuality='high';
       const tw=this.texture.width,th=this.texture.height,scale=297/th;
+      if(this.walking){c.save();c.translate(8+tw*scale/2,303);RoomMotion.draw(c,this.walkArt,{height:297,distance:this.step,weight:1,facing:this.facing||1});c.restore();return;}
       const point=(u,v)=>{
         let x=u*tw*scale+8,y=v*297+6;
         // Smooth shoulder-to-fingertip weighting; apron, legs and soles stay put.

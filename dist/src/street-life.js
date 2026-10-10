@@ -41,7 +41,8 @@
     };
     if(id==='tea'){
       const call=windowAt(t,0,1,2,3),pour=windowAt(t,7,8,10,11);
-      actor(785,t<11?'look':'drink',{direction:-1,pose:{handY:-9*call-(t>11?6*windowAt(t,12,14,22,25):0),nod:.04,handX:-2}});
+      const sipping=windowAt(t,12,15,21,25);
+      actor(785,t<11?'look':'drink',{direction:-1,pose:{handY:-5*call-4.2*sipping,nod:.024*windowAt(t,15,17,20,22),handX:-1.8*sipping,sway:0,lean:.005*sipping}});
       actor(823,'serve',{...journey(823,755,t,cycle,3,7,11,16),
         direction:t<7?-1:1,pose:{handX:3*pour,handY:-2*pour,lean:.018*pour,nod:.04*pour},prop:{kind:'kettle',pour}});
       actor(691,'talk',{direction:1,pose:{handX:2*windowAt(t,24,25,29,31),nod:.04*Math.sin(t*.9)}});

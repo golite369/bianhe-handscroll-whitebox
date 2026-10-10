@@ -10,7 +10,7 @@
   ];
   const atlas=document.querySelector('#atlas'),frame=document.querySelector('#atlasFrame'),img=document.querySelector('#atlasImage'),message=document.querySelector('#atlasMessage');
   const fileMode=location.protocol==='file:';
-  const localPreviewHint='请双击项目中的“打开清明上河.command”启动交互预览';
+  const localPreviewHint='请通过本地 HTTP 服务启动“汴河寻踪”交互预览，参见项目 README';
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const stage=document.createElement('div');stage.id='atlasStage';frame.before(stage);stage.append(frame);
   const nav=document.querySelector('#atlasPlaces');nav.replaceChildren();atlas.append(nav);nav.setAttribute('aria-label','长卷景点');nav.setAttribute('role','navigation');

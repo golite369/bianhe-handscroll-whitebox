@@ -136,32 +136,44 @@ import {ThreeWaterRenderer} from './water-three.js?v=1.9-scissor';
   // Dialogue owns input and camera only; original gait/population rigs stay intact.
   let dialogueView=null,dialogueReturn=null;
   const dialogueNPC=population.residents.find(p=>p.x===584);
+  const questResidents={wang:dialogueNPC,stall:population.residents.find(p=>p.x===2110),zhang:population.residents.find(p=>p.x===2145),zhou:population.residents.find(p=>p.x===2010)};
+  function questActor(key='wang'){
+    if(key==='boat')return {x:ferry.x-64*1.24*ferry.direction,y:ferry.y-10*1.24,h:63};
+    const p=questResidents[key]||dialogueNPC,hit=inhabitants.hits.find(hit=>hit.p.id===p.id);
+    return {x:hit?.x??p.x,y:hit?.y??streetY(p.x),h:p.h,id:p.id};
+  }
   window.HandscrollDialogueScene={
     get locked(){return !!dialogueView;},
-    read(){
+    read(key='wang'){
       const hit=inhabitants.hits.find(hit=>hit.p.id===dialogueNPC.id);
       return {ready:state.loaded,inAtlas:document.body.classList.contains('in-atlas'),aboard:aboard(),
         player:{x:player.x,y:player.pose?.y??streetY(player.x),h:69},
-        npc:{x:hit?.x??dialogueNPC.x,y:hit?.y??streetY(dialogueNPC.x),h:dialogueNPC.h},
+        npc:questActor(key),ferry:{mode:ferry.mode,berth:ferry.berth,trips:ferry.trips},
         camera:state.camera,viewY:state.viewY,scale:state.scale,width:state.width,height:state.height,time:state.time};
     },
-    approach(){if(!dialogueView&&!aboard())travel(dialogueNPC.x-47);},
-    lock(closeup=true){
-      if(dialogueView||aboard()||!state.loaded)return false;
+    approach(key='wang'){if(!dialogueView&&!aboard())travel(questActor(key).x-47);},
+    visit(x){if(!dialogueView&&!aboard())travel(x);},
+    ride(){if(!dialogueView&&!aboard())callNearestFerry();},
+    drinkTea(){if(!dialogueView&&!aboard())activateSpot('tea');},
+    lock(closeup=true,key='wang'){
+      if(dialogueView||!state.loaded)return false;
       dialogueReturn={zoom:state.zoom,camera:state.camera,target:state.target,viewY:state.viewY,follow:player.follow};
       walkInput.clear();release();state.auto=false;updatePlay();player.goal=null;player.pending=null;
       player.velocity=0;player.moving=false;player.action=null;player.idleTime=0;
-      dialogueView={npcX:dialogueNPC.x,closeup};setFollow(false);
+      inhabitants.focusId=closeup?questActor(key).id:null;
+      dialogueView={npcX:questActor(key).x,closeup,key,aboard:aboard()};setFollow(false);
       document.body.classList.add('dialogue-locked');return true;
     },
     unlock(){
       if(!dialogueView)return;
-      dialogueView=null;walkInput.clear();player.goal=null;player.pending=null;player.velocity=0;player.moving=false;
+      inhabitants.focusId=null;
+      const wasAboard=dialogueView.aboard;dialogueView=null;walkInput.clear();player.goal=null;player.pending=null;player.velocity=0;player.moving=false;
       state.zoom=dialogueReturn.zoom;state.scale=state.baseScale*state.zoom;
       state.max=Math.max(MIN,MAX-state.width/state.scale);
       state.camera=clamp(dialogueReturn.camera,MIN,state.max);state.target=clamp(dialogueReturn.target,MIN,state.max);
       state.viewY=clamp(dialogueReturn.viewY,0,Math.max(0,H-state.height/state.scale));
       setFollow(dialogueReturn.follow);dialogueReturn=null;document.body.classList.remove('dialogue-locked');
+      if(wasAboard)state.camera=state.target=cameraForPlayer();
       painting.focus({preventScroll:true});
     }
   };
@@ -564,7 +576,7 @@ import {ThreeWaterRenderer} from './water-three.js?v=1.9-scissor';
       const activity=player.action==='tea'?'drink':player.action==='bridge'?'trade':'look';
       const pose={...movement.activityAt(activity,player.action?player.actionTime:state.time,0,5.5),phase};
       if(!aboard())pose.gaitWeight=clamp(Math.abs(player.velocity)/movement.speeds.walk,0,1);
-      if(player.action==='tea'){pose.handY=-9*pose.gesture*detailScale;pose.handX=-3.5*pose.gesture*detailScale;}
+      if(player.action==='tea'){pose.handY=-4.2*pose.gesture*detailScale;pose.handX=-2.1*pose.gesture*detailScale;pose.sway=0;}
       if(player.action==='tow'){pose.handX=5+crossing.tension*3;pose.handY=2;pose.lean=-.055*crossing.tension;pose.nod=.04;pose.sway=0;}
       if(dockAction()&&ferry.mode==='approaching'){
         const wave=.72+Math.sin(player.actionTime*3.2)*.22;pose.handX=7;pose.handY=-11*wave;pose.lean=-.025;pose.nod=.045;pose.sway=0;
@@ -959,8 +971,11 @@ import {ThreeWaterRenderer} from './water-three.js?v=1.9-scissor';
       nightLevel=nightfall.step(dt,reduced.matches);
       painting.dataset.night=nightLevel.toFixed(3);
       state.uiTime+=dt;if(state.running)state.time+=dt;
-      if(dialogueView){if(state.running)world.stepFerry(ferry,dt);}
-      else updatePlayer(dt,walkInput.direction);
+      if(dialogueView){if(state.running){if(dialogueView.aboard){if(ferry.mode!=='disembarking')updatePlayer(dt,0);}else world.stepFerry(ferry,dt);}}
+      else if(ferry.mode==='disembarking'&&['boat','invoice'].includes(window.HandscrollMainQuest?.read().stage)){
+        // Wait at the gangplank for the ship clue, without changing gait rigs.
+        player.moving=false;
+      }else updatePlayer(dt,walkInput.direction);
       crossing.step(state.running?dt:0,{arriving:player.pending==='tow'});
       weatherSample=rainEvent.step(state.running?dt:0);
       const weatherMessages={gather:'河面起风，云气渐低',shower:'疏雨落入画卷',downpour:'雨势渐盛',easing:'雨声渐歇，檐水仍在滴落',afterglow:'云开雨过，湿地微光',complete:'雨过天青，街市如常'};
@@ -976,12 +991,13 @@ import {ThreeWaterRenderer} from './water-three.js?v=1.9-scissor';
       Object.assign(life.frame.actors,crossing.residents(world));
       if(state.running&&life.shouldCallFerry(state.time,ferry,player))world.summonFerry(ferry,'east');
       if(dialogueView?.closeup){
+        dialogueView.npcX=questActor(dialogueView.key).x;
         const zoom=Math.min(4.8,Math.max(dialogueReturn.zoom*1.5,state.height/(69*2.9*state.baseScale)));
         const easing=reduced.matches?1:1-Math.exp(-dt*7);
         state.zoom+=(zoom-state.zoom)*easing;state.scale=state.baseScale*state.zoom;
         state.max=Math.max(MIN,MAX-state.width/state.scale);
         state.target=clamp((player.x+dialogueView.npcX)/2-state.width*.5/state.scale,MIN,state.max);
-        const viewY=clamp(streetY(player.x)-state.height*.76/state.scale,0,Math.max(0,H-state.height/state.scale));
+        const viewY=clamp((player.pose?.y??streetY(player.x))-state.height*.76/state.scale,0,Math.max(0,H-state.height/state.scale));
         state.viewY+=(viewY-state.viewY)*easing;
       }
       state.target=clamp(state.target,MIN,state.max);
@@ -1098,12 +1114,13 @@ import {ThreeWaterRenderer} from './water-three.js?v=1.9-scissor';
   document.addEventListener('keydown',e=>{
     if(document.body.classList.contains('in-atlas'))return;
     if(document.querySelector('#bridgeSketch').open)return;
-    if(e.target instanceof HTMLInputElement)return;
-    if(crossing.joined&&['ArrowLeft','ArrowRight','KeyE'].includes(e.code)){e.preventDefault();towLatch=false;resume();crossing.pull(e.code==='ArrowRight'?.22:.56);return;}
+    if(e.target.closest?.('input,textarea,select,[contenteditable="true"]')||e.ctrlKey||e.altKey||e.metaKey)return;
+    const keyDirection=movement.keyboardDirection(e.code);
+    if(crossing.joined&&(keyDirection||e.code==='KeyE')){e.preventDefault();towLatch=false;resume();crossing.pull(keyDirection===1?.22:.56);return;}
     if(e.code==='KeyE'&&!e.repeat&&crossing.busy&&Math.abs(player.x-window.BridgeStory.station)<100){e.preventDefault();joinCrossing();return;}
-    if(['ArrowLeft','ArrowRight'].includes(e.code)){
+    if(keyDirection){
       e.preventDefault();if(aboard())return;
-      const dir=e.code==='ArrowRight'?1:-1;
+      const dir=keyDirection;
       if(!e.repeat&&walkInput.press(e.code,dir,player.x,performance.now()))walkingInput(dir);
     }
     if(e.code==='Space'&&!(e.target instanceof HTMLButtonElement)){e.preventDefault();if(!e.repeat){state.running=!state.running;updateMotion();}}
@@ -1112,7 +1129,7 @@ import {ThreeWaterRenderer} from './water-three.js?v=1.9-scissor';
     if(e.code==='Home'){e.preventDefault();browse();state.target=MIN;}
     if(e.code==='End'){e.preventDefault();browse();state.target=state.max;}
   });
-  document.addEventListener('keyup',e=>{if(['ArrowLeft','ArrowRight','KeyE'].includes(e.code))crossing.pull(0);releaseWalking(e.code);});
+  document.addEventListener('keyup',e=>{if(movement.keyboardDirection(e.code)||e.code==='KeyE')crossing.pull(0);releaseWalking(e.code);});
   const releaseControls=()=>{walkInput.clear();player.velocity=0;player.moving=false;release();};
   addEventListener('blur',releaseControls);
   document.addEventListener('visibilitychange',()=>{releaseControls();last=0;frameSample.elapsed=0;frameSample.count=0;frameSample.slow=0;sound.setRunning((state.running||festivalWelcome.open)&&!document.hidden);});

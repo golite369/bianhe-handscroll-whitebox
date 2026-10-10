@@ -7,6 +7,7 @@
   const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
   const smooth=v=>{const t=clamp(v);return t*t*(3-2*t);};
   const speeds={walk:102,auto:62};
+  function keyboardDirection(code){return ({ArrowLeft:-1,KeyA:-1,ArrowRight:1,KeyD:1})[code]||0;}
   // Input events choose a direction; animation frames advance the journey.
   // A short tap has a destination measured from press-down, not release.
   function createWalkInput(){
@@ -111,8 +112,8 @@
     const beat=Math.sin(c*Math.PI*2),small=Math.sin(t*.9)*.012;
     const pose={handX:0,handY:0,lean:small*.3,nod:small,gesture,phase:t,sway:Math.sin(t*.71)*.12};
     switch(activity){
-      case 'drink':Object.assign(pose,{handX:-2.5*gesture,handY:-5.2*gesture,nod:.055*gesture});break;
-      case 'eat':Object.assign(pose,{handX:-1.8*gesture,handY:-3.8*gesture,nod:.045*gesture});break;
+      case 'drink':{const lift=smooth(c/.30)*(1-smooth((c-.66)/.30)),sip=smooth((c-.26)/.12)*(1-smooth((c-.54)/.16));Object.assign(pose,{gesture:lift,handX:-2.1*lift,handY:-4.2*lift,nod:.026*sip,lean:.006*sip,sway:0});break;}
+      case 'eat':{const lift=smooth(c/.28)*(1-smooth((c-.58)/.35));Object.assign(pose,{gesture:lift,handX:-1.5*lift,handY:-2.8*lift,nod:.022*lift,sway:0});break;}
       case 'pour':Object.assign(pose,{handX:-2.7*gesture,handY:1.5*gesture,lean:-.022*gesture,nod:.04*gesture});break;
       case 'trade':case 'serve':Object.assign(pose,{handX:4.4*gesture,handY:-1.1*gesture,lean:.012*gesture,nod:-.025*gesture});break;
       case 'pottery':Object.assign(pose,{handX:Math.sin(c*Math.PI*4)*1.5,handY:1.4+beat*.8,lean:.025,nod:.045});break;
@@ -181,5 +182,5 @@
     }
     return [x,y];
   }
-  return {speeds,hands,createWalkInput,stepWalk,gaitAt,visibleFeet,activityAt,footContacts,deform,legJoints,legSkeleton};
+  return {speeds,hands,keyboardDirection,createWalkInput,stepWalk,gaitAt,visibleFeet,activityAt,footContacts,deform,legJoints,legSkeleton};
 });

@@ -58,7 +58,7 @@
     draw(texture,points){
       const gl=this.gl;this.upload(texture);
       const count=(points.length-1)*(points[0].length-1)*6;
-      this.vertices??=new Float32Array(4096);
+      if(!this.vertices||this.vertices.length<count*4)this.vertices=new Float32Array(Math.max(4096,count*4));
       let i=0;const add=p=>{this.vertices[i++]=(p.target[0]+this.x)*this.density/this.canvas.width*2-1;this.vertices[i++]=1-(p.target[1]+this.y)*this.density/this.canvas.height*2;this.vertices[i++]=p.source[0]/texture.width;this.vertices[i++]=p.source[1]/texture.height;};
       for(let r=0;r<points.length-1;r++)for(let c=0;c<points[r].length-1;c++){
         const p=points[r][c],q=points[r][c+1],a=points[r+1][c],b=points[r+1][c+1];add(p);add(q);add(a);add(q);add(b);add(a);
@@ -307,7 +307,8 @@
       // Small seated/working gestures need fewer mesh rebuilds than camera
       // movement. Stagger them by character; moving feet still update every
       // display frame. Each resident retains just one bounded-size bitmap.
-      const cacheable=p.id?.startsWith('resident-')&&!walking&&pose.gaitWeight===undefined,tick=Math.floor((time+(p.phase||0))*12);
+      const closeup=(this.motionDensity??3)>2;
+      const cacheable=p.id?.startsWith('resident-')&&!walking&&pose.gaitWeight===undefined,tick=Math.floor((time+(p.phase||0))*(closeup?60:24));
       let cached=cacheable?this.residentFrames.get(p.id):null;
       if(cacheable&&!cached){
         const image=document.createElement('canvas');image.width=pw;image.height=ph;
@@ -361,7 +362,10 @@
         ctx.beginPath();ctx.ellipse(foot.x,foot.y+foot.lift+.25,w*.085,.65,0,0,Math.PI*2);
         ctx.fillStyle=foot.stance?'#50463144':'#5046311b';ctx.fill();
       }
+      const originalFilter=ctx.filter;
+      if(this.focusId===p.id)ctx.filter='brightness(1.16) saturate(1.25) contrast(1.06)';
       ctx.drawImage(gpu?this.mesh.canvas:cached?.image??this.motionSurface,region.x,region.y,pw,ph,-w/2-12,-h-8,pw/density,ph/density);
+      ctx.filter=originalFilter;
       const handPoint=cached?.hand??movement.deform(...hand,rig);
       this.workObject(ctx,p,handPoint,h);
       ctx.restore();

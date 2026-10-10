@@ -1,0 +1,21 @@
+/* Shared paper-and-ink dialogue surfaces. Placement and actor logic stay intact. */
+:root{--dialogue-paper:#f2e8d4f5;--dialogue-ink:#433b2e;--dialogue-line:#8a795c95;--dialogue-shadow:0 3px 12px #51412822;--dialogue-font:"Songti SC","SimSun","Noto Serif CJK SC",serif}
+.market-choices[hidden]{display:none!important}.market-words{min-height:7em;cursor:pointer}
+.menu-open .market-experiences{pointer-events:none;visibility:hidden}.menu-sheet .dish .dish-price{display:block;margin-top:4px;font:14px/1.5 var(--dialogue-font);color:inherit;text-shadow:none}
+.story-dialogue,.story-hint,.street-shop-host>span,.speech-bubble,#festivalBubble{
+  background:var(--dialogue-paper);color:var(--dialogue-ink);
+  border:1px solid var(--dialogue-line);border-radius:2px;
+  box-shadow:var(--dialogue-shadow);font-family:var(--dialogue-font);
+  font-weight:400;text-shadow:none;box-sizing:border-box;
+}
+.street-shop-host>span{padding:12px 16px;font-size:clamp(16px,var(--host-label-size,19px),22px);line-height:1.65;letter-spacing:.04em;text-align:left}
+.street-shop-host:hover>span,.street-shop-host:focus-visible>span{background:var(--dialogue-paper);color:var(--dialogue-ink);border-color:var(--dialogue-line);box-shadow:var(--dialogue-shadow)}
+.street-shop-host>span::after,.speech-bubble::before,.speech-bubble::after{display:none}
+.street-shop-host.is-nearby>span{animation:none}
+.speech-bubble{padding:13px 16px;max-width:min(300px,calc(100vw - 32px));font-size:19px;line-height:1.65;letter-spacing:.04em;filter:none}
+.speech-bubble #speechText{line-height:1.65;text-align:left}
+#festivalBubble{padding:12px 16px;font-size:16px;line-height:1.65;text-align:left}
+.story-npc{background:var(--dialogue-paper);color:var(--dialogue-ink);border-color:var(--dialogue-line);font-family:var(--dialogue-font)}
+.evidence-sheet{background:var(--dialogue-paper);color:var(--dialogue-ink);border-color:var(--dialogue-line);border-radius:2px;font-family:var(--dialogue-font)}
+@media(max-width:600px){.street-shop-host>span{white-space:normal;width:max-content;max-width:calc(100vw - 32px)}.speech-bubble{font-size:18px}#festivalBubble{font-size:16px}}
+.market-experiences{color:var(--dialogue-ink);font-family:var(--dialogue-font);padding:12px 0}.market-caption{margin:0 0 8px;font-size:16px}.market-actions,.market-choices{display:flex;flex-wrap:wrap;gap:10px}.market-experiences button,.market-choices button{padding:9px 13px;background:var(--dialogue-paper);border:1px solid var(--dialogue-line);border-radius:2px;color:inherit;font:16px/1.5 var(--dialogue-font);cursor:pointer;width:auto;height:auto}.market-experiences small{display:block;margin-top:8px;font-size:14px}.street-experiences{position:fixed;right:24px;top:86px;z-index:43;background:var(--dialogue-paper);border:1px solid var(--dialogue-line);padding:12px 16px}.market-modal{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:#27251e70;padding:24px;color:var(--dialogue-ink);font-family:var(--dialogue-font)}.market-modal[hidden],.market-experiences[hidden]{display:none!important}.market-sheet{position:relative;width:min(470px,100%);max-height:calc(100vh - 48px);overflow:auto;padding:22px 26px;background:var(--dialogue-paper);border:1px solid var(--dialogue-line);border-radius:2px;box-shadow:var(--dialogue-shadow)}.market-sheet h2{font-size:20px;font-weight:400;margin:0 24px 14px 0}.market-words{font-size:18px;line-height:1.8;white-space:pre-wrap}.market-close{position:absolute;right:8px;top:5px;border:0;background:none;font:24px serif;color:inherit;cursor:pointer;width:30px;height:30px}.market-sheet small{display:block;margin-top:16px;font-size:13px;line-height:1.6;color:#796b53}

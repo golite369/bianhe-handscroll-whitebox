@@ -23,7 +23,7 @@
   const hint=ui.querySelector('.story-hint'),npcButton=ui.querySelector('.story-npc'),box=ui.querySelector('.story-dialogue');
   const next=ui.querySelector('.dialogue-next'),speaker=ui.querySelector('.dialogue-speaker'),text=ui.querySelector('.dialogue-text'),instruction=ui.querySelector('.dialogue-hint');
   const modal=ui.querySelector('.evidence-modal'),evidenceButton=ui.querySelector('#storyEvidence'),locate=ui.querySelector('#storyLocate');
-  const script=[
+  const teaScript=[
     ['沈照','五哥，张先生今日来过吗？约好在这里碰面的，我瞧了一圈，也没见着他。'],
     ['王五','来过，刚才还坐这儿呢。他跟一个蜀地来的客人聊得起劲，茶都顾不上喝。后来听见桥边有人招呼，就拿着笔出去了。'],
     ['沈照','那他有没有留下什么话？我带着画具，怕跟他走岔了。'],
@@ -31,7 +31,8 @@
     ['沈照','嗯，我看看。桥边这条带篷的船，他特意圈了出来……看来得去那边问问。'],
     ['王五','对，别光顾着看画，路上留神脚下。那客人还在附近，说起蜀地的交子来挺有意思。先生方才就是听这个听入了神。']
   ];
-  let active=false,collected=false,entry=0,pageIndex=0,pages=[],shown=0,characters=[],nextAt=0,lastClick=0,modalOwnsLock=false;
+  let script=teaScript,targetKey='wang',completion=null;
+  let active=false,collected=!!root.HandscrollMainQuest&&root.HandscrollMainQuest.read().stage!=='tea',entry=0,pageIndex=0,pages=[],shown=0,characters=[],nextAt=0,lastClick=0,modalOwnsLock=false;
   const measureCanvas=document.createElement('canvas'),measureContext=measureCanvas.getContext('2d');
   const engine=()=>root.HandscrollDialogueScene;
   function setPage(){
@@ -45,13 +46,20 @@
   }
   function finishPage(){shown=characters.length;text.textContent=characters.join('');instruction.textContent=entry===script.length-1&&pageIndex===pages.length-1?'点击结束交谈':'点击继续';ui.querySelector('.story-sr').textContent=`${speaker.textContent}：${text.textContent}`;}
   function start(){
-    const scene=engine()?.read();if(!scene||scene.inAtlas||scene.aboard||active||!modal.hidden)return;
-    if(Math.abs(scene.player.x-scene.npc.x)>110){engine().approach();return;}
-    if(!engine().lock(true))return;
-    active=true;entry=0;box.hidden=false;document.body.dataset.dialogueMode='talk';setPage();next.focus({preventScroll:true});
+    if(root.HandscrollMainQuest){root.HandscrollMainQuest.interact();return;}
+    run(teaScript,'wang');
   }
-  function end(){
+  function run(lines,key='wang',done=null){
+    const scene=engine()?.read(key);if(!scene?.ready||scene.inAtlas||active||!modal.hidden||engine().locked)return false;
+    if(!scene.aboard&&Math.abs(scene.player.x-scene.npc.x)>110){engine().approach(key);return false;}
+    if(!engine().lock(true,key))return false;
+    script=lines;targetKey=key;completion=done;
+    active=true;entry=0;box.hidden=false;document.body.dataset.dialogueMode='talk';setPage();next.focus({preventScroll:true});
+    return true;
+  }
+  function end(finished=false){
     active=false;box.hidden=true;engine()?.unlock();document.body.dataset.dialogueMode='explore';
+    const done=completion;completion=null;if(finished)done?.();
   }
   function advance(){
     if(!active||!modal.hidden)return;
@@ -59,9 +67,9 @@
     if(shown<characters.length){finishPage();return;}
     if(++pageIndex<pages.length){showPage();return;}
     const finished=entry;entry++;
-    if(entry===script.length){end();return;}
+    if(entry===script.length){end(true);return;}
     setPage();
-    if(finished===3){collected=true;evidenceButton.hidden=false;locate.hidden=true;ui.querySelector('#storyObjective').textContent='已获得画稿：沿河寻找画中的带篷船。';openEvidence();}
+    if(script===teaScript&&finished===3){collected=true;evidenceButton.hidden=false;locate.hidden=true;ui.querySelector('#storyObjective').textContent='已获得画稿：沿河寻找画中的带篷船。';openEvidence();}
   }
   function openEvidence(){
     if(!collected||!modal.hidden)return;
@@ -74,11 +82,13 @@
     else{box.hidden=!active;nextAt=performance.now()+100;document.body.dataset.dialogueMode='talk';next.focus({preventScroll:true});}
   }
   next.addEventListener('click',advance);npcButton.addEventListener('click',start);
-  ui.querySelector('.dialogue-close').addEventListener('click',end);
+  ui.querySelector('.dialogue-close').addEventListener('click',()=>end(false));
   evidenceButton.addEventListener('click',openEvidence);ui.querySelector('.evidence-close').addEventListener('click',closeEvidence);ui.querySelector('.evidence-keep').addEventListener('click',closeEvidence);
   locate.addEventListener('click',()=>{if(location.hash==='#tea')engine()?.approach();});
   // Capture shields original keyboard/pointer listeners without editing movement.
   document.addEventListener('keydown',e=>{
+    if(e.target.closest?.('[data-sound-control]'))return;
+    if(document.body.dataset.dialogueMode==='side')return;
     const locked=engine()?.locked;
     if(locked){
       e.preventDefault();e.stopImmediatePropagation();
@@ -88,18 +98,19 @@
       else if(['Space','Enter','KeyE'].includes(e.code)){if(!modal.hidden)closeEvidence();else advance();}
       return;
     }
-    if(e.code==='KeyE'&&!e.repeat){const scene=engine()?.read();if(scene&&!scene.inAtlas&&!scene.aboard&&Math.abs(scene.player.x-scene.npc.x)<=110){e.preventDefault();e.stopImmediatePropagation();start();}}
+    if(e.code==='KeyE'&&!e.repeat){const scene=engine()?.read(root.HandscrollMainQuest?.target()||'wang');if(scene&&!scene.inAtlas&&root.HandscrollMainQuest?.available()&&(scene.aboard||Math.abs(scene.player.x-scene.npc.x)<=110)){e.preventDefault();e.stopImmediatePropagation();start();}else if(root.HandscrollActivities?.interactNearby()){e.preventDefault();e.stopImmediatePropagation();}}
   },true);
   for(const type of ['pointerdown','pointerup','pointermove','wheel','dblclick','click'])document.addEventListener(type,e=>{
-    if(engine()?.locked&&!ui.contains(e.target)){e.preventDefault();e.stopImmediatePropagation();}
+    if(engine()?.locked&&!ui.contains(e.target)&&!e.target.closest('[data-side-ui],[data-sound-control]')){e.preventDefault();e.stopImmediatePropagation();}
   },{capture:true,passive:false});
   function tick(now){
-    const scene=engine()?.read();
+    const key=active?targetKey:(root.HandscrollMainQuest?.target()||'wang'),scene=engine()?.read(key);
     const visible=scene?.ready&&!scene.inAtlas;
     hint.hidden=!visible;document.body.dataset.dialogueCollected=String(collected);
     if(visible){
       const x=(scene.npc.x-scene.camera)*scene.scale,y=(scene.npc.y-scene.viewY)*scene.scale;
-      npcButton.hidden=active||!modal.hidden||scene.aboard||x<25||x>scene.width-25;
+      npcButton.hidden=active||engine()?.locked||!modal.hidden||!root.HandscrollMainQuest?.available()||x<25||x>scene.width-25;
+      npcButton.textContent=root.HandscrollMainQuest?.label()||'王五 · 交谈';npcButton.setAttribute('aria-label',npcButton.textContent);
       npcButton.style.left=`${x}px`;npcButton.style.top=`${Math.min(scene.height-80,y+10)}px`;
       npcButton.classList.toggle('nearby',Math.abs(scene.player.x-scene.npc.x)<=110);
       if(active){
@@ -117,4 +128,5 @@
   addEventListener('atlas-enter',()=>{if(active)end();if(!modal.hidden)closeEvidence();});
   document.fonts?.ready.then(()=>{if(active){const complete=shown===characters.length;setPage();if(complete)finishPage();}});
   requestAnimationFrame(tick);
+  root.HandscrollDialogue={run,tea(done){return run(teaScript,'wang',done);},evidence:openEvidence};
 })(typeof window!=='undefined'?window:globalThis);

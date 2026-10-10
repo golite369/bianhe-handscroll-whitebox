@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict');
+const {nearPlaces}=require('../dist/src/street-activities.js');
+const {createWallet}=require('../dist/src/market-wallet.js');
+assert.deepEqual(nearPlaces(584).map(p=>p.id),['tea']);
+assert.deepEqual(nearPlaces(2010).map(p=>p.id),['exchange']);
+assert.equal(nearPlaces(1400).length,0);
+const wallet=createWallet();
+assert.equal(wallet.exchange(),true);assert.equal(wallet.exchange(),false);
+assert.deepEqual(wallet.read(),{purse:200,ticket:1,ironPack:0});
+assert.equal(wallet.redeem(),true);assert.equal(wallet.redeem(),false);
+assert.equal(wallet.setPurse(-5),false);
+assert.equal(wallet.setPurse(188),true);
+assert.equal(createWallet(wallet.read()).read().purse,188);
+console.log('Location triggers, independent exchange funds, duplicate exchange and wallet restore passed');

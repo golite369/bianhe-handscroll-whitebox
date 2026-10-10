@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict');
+const {keyboardDirection,createWalkInput}=require('../dist/src/movement.js');
+for(const [key,dir] of [['KeyA',-1],['ArrowLeft',-1],['KeyD',1],['ArrowRight',1],['KeyE',0]])assert.equal(keyboardDirection(key),dir);
+const input=createWalkInput();
+input.press('KeyA',keyboardDirection('KeyA'),100,0);
+assert.equal(input.direction,-1);
+input.press('KeyD',keyboardDirection('KeyD'),100,10);
+assert.equal(input.direction,1);
+input.release('KeyD',100,300);assert.equal(input.direction,-1);
+input.release('KeyA',100,400);assert.equal(input.direction,0);
+input.press('KeyD',1,100,500);input.clear();assert.equal(input.direction,0);
+console.log('A/D and arrow mappings, simultaneous key release and lock reset passed');

@@ -1,0 +1,5 @@
+.street-activity-trigger[hidden]{display:none!important}
+.street-activity-trigger{position:fixed;z-index:44;width:max-content;max-width:min(290px,calc(100vw - 32px));height:auto;padding:10px 14px;background:var(--dialogue-paper);border:1px solid var(--dialogue-line);border-radius:2px;color:var(--dialogue-ink);font:16px/1.65 var(--dialogue-font);text-align:left;cursor:pointer;box-shadow:var(--dialogue-shadow)}
+.street-activity-trigger:hover,.street-activity-trigger:focus-visible{outline:1px solid #8b3527;outline-offset:2px}
+.quest-prop-image[hidden]{display:none!important}
+.quest-prop-image{display:block;max-width:100%;max-height:280px;object-fit:contain;margin:0 auto 14px}

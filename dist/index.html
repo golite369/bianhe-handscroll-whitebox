@@ -4,18 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#e2d4b6">
-  <title>清明上河</title>
+  <title>汴河寻踪</title>
+  <meta name="description" content="汴河寻踪：走入宋代市井长卷，寻访张择端，乘船游河，探索交子与百姓生活的故事。">
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="styles/style.css?v=28-social-links">
   <link rel="stylesheet" href="styles/midautumn.css?v=12-entry-frame">
   <link rel="stylesheet" href="styles/buttons.css?v=4">
-  <link rel="stylesheet" href="styles/dialogue.css?v=1">
+  <link rel="stylesheet" href="styles/dialogue.css?v=2-sound">
   <link rel="stylesheet" href="styles/atlas-festival.css?v=12-soft-haze">
+  <link rel="stylesheet" href="styles/conversation-theme.css?v=3">
+<link rel="stylesheet" href="styles/quest-ui.css?v=2-sound">
 </head>
 <!-- 中秋赏灯街道保留待复用；恢复时将 data-midautumn-enabled 改为 true。 -->
 <body class="in-atlas scroll-page" data-midautumn-enabled="false">
   <section id="atlas" aria-label="全景入画" aria-describedby="atlasHint">
-    <header class="atlas-heading"><span>汴河 · 一日千年</span><h1>清明上河</h1><p id="atlasHint">移笔游目，点景入画</p></header>
+    <header class="atlas-heading"><span>汴河 · 一日千年</span><h1>汴河寻踪</h1><p id="atlasHint">移笔游目，点景入画</p></header>
     <div id="atlasFrame"><img id="atlasImage" src="assets/qingming-panorama-v1.webp" alt="从水磨作坊、沿河茶市，经虹桥到城门货市的全景长卷" draggable="false" fetchpriority="high"><div id="atlasPlaces">
       <button data-u="0.1" style="--u:10%" aria-label="进入水磨作坊">水磨作坊</button><button data-u="0.33" style="--u:33%" aria-label="进入沿河茶市">沿河茶市</button><button data-u="0.52" style="--u:52%" aria-label="进入虹桥">虹桥烟火</button><button data-u="0.92" style="--u:92%" aria-label="进入城门货市">城门货市</button>
     </div></div>
@@ -23,7 +26,7 @@
     <canvas id="atlasInk" aria-hidden="true"></canvas>
   </section>
   <button id="atlasReturn" aria-label="返回全景选景" title="全景选景" hidden>全景</button>
-  <main id="painting" tabindex="0" aria-label="清明上河街市，左右方向键控制行人，点击街道前往，拖动浏览，空格暂停，双击放大，E键在茶铺、桥头或码头互动">
+  <main id="painting" tabindex="0" aria-label="汴河寻踪街市，A/D或左右方向键控制行人，点击街道前往，拖动浏览，空格暂停，双击放大，E键在茶铺、桥头或码头互动">
     <a id="sunyang" class="street-shop-host" href="sunyang.html" aria-label="客官，进来歇歇脚！尝尝本店特色小吃，点击伙计进入孙羊正店" hidden><span>客官，进来歇歇脚！<br>尝尝本店特色小吃</span><canvas aria-hidden="true"></canvas></a>
     <canvas id="scene" role="img" aria-label="宋代沿河街市立面，茶楼、食铺、木桥，食客、摊贩、行人与船只在画中移动"></canvas>
     <button id="midautumnEntry" aria-label="入城赏月，进入中秋灯市" aria-haspopup="dialog" hidden><span>入城赏月</span><i aria-hidden="true">↗</i></button>
@@ -59,11 +62,11 @@
   <button id="follow" aria-label="回到行人" title="回到行人"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg></button>
   <div class="corner-controls">
     <button id="zoom" aria-label="放大细节" title="放大细节" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5M7 10h6m-3-3v6"/></svg></button>
-    <button id="sound" aria-label="开启背景音乐与环境声" title="开启背景音乐与环境声" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4Zm12-1q4 4 0 8m3-11q6 7 0 14"/><path class="mute-mark" d="m4 3 16 18"/></svg></button>
     <button id="motion" aria-label="暂停动画" title="暂停动画"><svg viewBox="0 0 24 24"><path d="M9 6v12M15 6v12"/></svg></button>
     <button id="fullscreen" aria-label="全屏" title="全屏"><svg viewBox="0 0 24 24"><path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4"/></svg></button>
   </div>
   <nav class="district-stops" aria-label="街区位置"><button class="district-stop" data-x="-1550" aria-label="浏览水磨作坊" title="水磨作坊"></button><button class="district-stop" data-x="650" aria-label="浏览茶市" title="茶市"></button><button class="district-stop" data-x="1560" aria-label="浏览虹桥" title="虹桥"></button><button class="district-stop" data-x="3360" aria-label="浏览城门货市" title="城门货市"></button></nav>
+  <button id="sound" data-sound-control aria-label="开启背景音乐与环境声" title="开启背景音乐与环境声" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4Zm12-1q4 4 0 8m3-11q6 7 0 14"/><path class="mute-mark" d="m4 3 16 18"/></svg></button>
   <input id="position" aria-label="画卷位置" type="range" min="0" max="1000" value="0">
   <dialog id="midautumnWelcome" aria-labelledby="midautumnTitle" aria-describedby="midautumnDescription">
     <div class="festival-street">
@@ -93,11 +96,18 @@
   </dialog>
   <script src="src/festival-lighting.js?v=10-lossless" defer></script>
   <script src="src/festival-street.js?v=20-season-toggle" defer></script>
-  <script src="src/dynamic-loader.js?v=38-dialogue"></script>
-  <script src="src/dialogue.js?v=1"></script>
-  <script src="src/atlas.js?v=18-sky-only"></script>
+  <script src="src/dynamic-loader.js?v=42-ad"></script>
+  <link rel="stylesheet" href="styles/main-quest.css?v=1">
+  <link rel="stylesheet" href="styles/street-activities.css?v=1">
+  <script src="src/market-wallet.js?v=1"></script>
+  <script src="src/quest-art.js?v=2-approved"></script>
+  <script src="src/street-activities.js?v=1"></script>
+  <script src="src/main-quest.js?v=2-save"></script>
+  <script src="src/dialogue.js?v=5-place"></script>
+  <script src="src/atlas.js?v=19-bianhe-name"></script>
   <script src="src/atlas-festival.js?v=12-soft-moon"></script>
   <script src="src/atlas-atmosphere.js?v=2-lunar-phase"></script>
   <!-- 国庆烟花表演及配套音频已停用，模块保留供以后复用。 -->
+<script src="src/market-experiences.js?v=6-place"></script>
 </body>
 </html>

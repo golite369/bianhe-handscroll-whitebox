@@ -21,7 +21,7 @@
         for(let y=0;y<h;y++)for(let x=0;x<cell;x++)if(pixels.data[(y*cell+x)*4+3]>96){l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);b=Math.max(b,y);}
         const texture=document.createElement('canvas');texture.width=r-l+1;texture.height=b-t+1;
         const c=texture.getContext('2d');c.drawImage(raw,l,t,texture.width,texture.height,0,0,texture.width,texture.height);
-        this.frames.push({texture,frame:{w:texture.width,h:texture.height},contacts:ScrollMovement.footContacts(c.getImageData(0,0,texture.width,texture.height).data,texture.width,texture.height),grips:[[.65,.45]],direction:1,stride:.29,legKnees:n===1?[.29,.73]:undefined});
+        this.frames.push({...RoomMotion.frame(texture),frame:{w:texture.width,h:texture.height},grips:[[.65,.45]],direction:1,stride:.29,legKnees:n===1?[.29,.73]:undefined});
       }
     }
     get height(){return .285+(this.y-.76)*.55;}
@@ -45,23 +45,9 @@
       if(this.seatBlend<1){
         c.globalAlpha=1-this.seatBlend;
         c.save();c.translate(200,340);c.scale(this.facing,1);
-        const art=this.frames[0],tw=art.frame.w,th=art.frame.h,scale=252/th;
+        const art=this.frames[this.moving?1:0],tw=art.frame.w,th=art.frame.h,scale=252/th;
         if(!this.moving){c.drawImage(art.texture,-tw*scale/2,-252,tw*scale,252);}
-        else{
-          // The intact painted silhouette sways gently, like the attendant.
-          // No separated thigh/shin meshes or forced anatomical stride.
-          const beat=this.phase*2.2,weight=this.weight;
-          const point=(u,v)=>{
-            const lower=Math.max(0,(v-.68)/.32),side=u<.5?-1:1;
-            return {source:[u*tw,v*th],target:[(u-.5)*tw*scale+Math.sin(beat)*2.8*lower*side*weight,(v-1)*252-Math.max(0,Math.sin(beat)*side)*1.8*lower*weight-Math.abs(Math.sin(beat))*1.1*(1-lower)*weight]};
-          };
-          const cols=8,rows=18;
-          const points=Array.from({length:rows+1},(_,y)=>Array.from({length:cols+1},(_,x)=>point(x/cols,y/rows)));
-          for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){
-            const a=points[j][i],b=points[j][i+1],d=points[j+1][i],e=points[j+1][i+1];
-            this.renderer.cell(c,art.texture,a,b,d,e);
-          }
-        }
+        else{RoomMotion.draw(c,art,{height:252,distance:this.phase/.15,weight:this.weight});}
         c.restore();
       }
       c.globalAlpha=1;
@@ -83,7 +69,7 @@
           if(token!==this.generation)return;
           if(start===null)start=time;
           const t=duration?Math.min(1,(time-start)/duration):1,u=t<.16?t*t/(2*.16*(1-.16)):t>.84?1-(1-t)*(1-t)/(2*.16*(1-.16)):(t-.08)/.84;
-          this.x=sx+dx*u;this.y=sy+dy*u;this.phase+=(u-last)*distance/(this.height*1024/63)*.15;last=u;this.weight=Math.min(1,t*8,(1-t)*8);
+          this.x=sx+dx*u;this.y=sy+dy*u;this.phase+=(u-last)*distance*252/(this.height*1024)*.15;last=u;this.weight=Math.min(1,t*8,(1-t)*8);
           if(t===1){
             this.weight=0;this.sitting=sit;
             if(sit&&duration){
