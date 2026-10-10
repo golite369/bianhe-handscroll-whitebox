@@ -1,0 +1,29 @@
+.story-ui{font-family:"Songti SC","SimSun","Noto Serif CJK SC",serif;color:#433b2e;position:fixed;z-index:45}
+.story-ui[hidden],.evidence-modal[hidden]{display:none!important}
+body.in-atlas .story-npc{display:none!important}
+.story-hint{left:24px;top:86px;max-width:230px;padding:10px 14px;background:#f0e5cced;border:1px solid #81704a55;font-size:15px;line-height:1.7}
+.story-hint p{margin:0 0 5px}.story-hint a,.story-hint button{color:inherit;font:inherit;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+.story-hint small{display:block;font-size:13px;color:#73664f}
+.story-npc{width:auto;height:auto;padding:6px 12px;border:1px solid #82725580;border-radius:2px;background:#f2e7cfef;font-size:15px;cursor:pointer;white-space:nowrap;transform:translate(-50%,0)}
+.story-npc.nearby{box-shadow:0 1px 6px #51412830}
+.story-dialogue{width:340px;max-width:calc(100vw - 32px);background:#f2e8d4f5;border:1px solid #8a795c95;box-shadow:0 3px 12px #51412822;border-radius:2px;padding:13px 16px 10px;box-sizing:border-box}
+.story-dialogue .dialogue-close{position:absolute;right:7px;top:4px;background:none;border:none;font:20px serif;color:#736650;cursor:pointer;width:30px;height:30px}
+.dialogue-next{display:block;width:100%;height:auto;text-align:left;padding:0;border:0;border-radius:0;background:none;color:inherit;font:inherit;cursor:pointer}
+.dialogue-speaker{display:block;width:100%;text-align:left;font-size:16px;margin:0 25px 7px 0}
+.dialogue-text{display:block;width:100%;font-size:19px;line-height:1.65;min-height:5em;white-space:pre-wrap;overflow-wrap:anywhere}
+.dialogue-hint{display:block;width:100%;text-align:right;font-size:13px;color:#796b53;margin-top:4px}
+.story-dialogue .dialogue-next:hover{background:transparent;border-color:transparent}
+.dialogue-locked #painting,.dialogue-locked .controls,.dialogue-locked .icon-controls,.dialogue-locked #atlasReturn,.dialogue-locked #follow,.dialogue-locked #position,.dialogue-locked #sunyang{pointer-events:none}
+.dialogue-locked .story-hint,.dialogue-locked .story-npc{visibility:hidden}
+.dialogue-locked .controls,.dialogue-locked .corner-controls,.dialogue-locked #atlasReturn,.dialogue-locked #follow,.dialogue-locked #towMemo{visibility:hidden}
+.evidence-modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:#27251e70;padding:24px;box-sizing:border-box;font-family:"Songti SC","SimSun",serif;color:#433b2e}
+.evidence-sheet{position:relative;width:min(530px,100%);max-height:calc(100vh - 48px);overflow:auto;background:#f0e5cf;border:1px solid #897656;padding:22px 26px;box-shadow:0 10px 35px #211b1933;box-sizing:border-box;text-align:center}
+.evidence-sheet h2{font-size:21px;font-weight:400;margin:0 22px 18px}.evidence-sheet p{font-size:17px;line-height:1.7;margin:15px 0}
+.evidence-art{position:relative;width:100%;aspect-ratio:412/238;overflow:hidden;margin:0;background:#ddc9a4}
+.evidence-art img{position:absolute;width:405.825%;max-width:none;height:auto;left:-167.476%;top:-228.572%;pointer-events:none}
+.evidence-art.evidence-prop{aspect-ratio:auto;background:transparent}
+.evidence-art.evidence-prop img{position:static;display:block;width:100%;max-height:50vh;object-fit:contain}
+.evidence-close{position:absolute;right:8px;top:7px;background:none;border:0;font:24px serif;color:inherit;width:34px;height:34px;cursor:pointer}
+.evidence-keep{width:auto;height:auto;min-width:130px;margin:0 auto;border-radius:2px;padding:8px 22px;background:none;border:1px solid #8a7758;color:inherit;font:17px "SimSun",serif;cursor:pointer}
+.story-ui button:focus-visible,.story-ui a:focus-visible,.evidence-modal button:focus-visible{outline:2px solid #84704c;outline-offset:3px}
+.story-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
